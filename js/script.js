@@ -421,20 +421,20 @@ async function simulateGacha() {
 			let extraLine = '';
 			if (isHardPityEnabled) {
 			    const successRate = ((pull4success / simTimes) * 100).toFixed(2);
-			    extraLine = `<p>4星達標成功率: ${successRate}%</p>`;
+			    extraLine = `<p>${t('successRate4')}: ${successRate}%</p>`;
 			}
-			
+
 			const resultDiv = document.getElementById('result');
 			resultDiv.style.backgroundColor = '#e6f7ff';
 			resultDiv.style.padding = '10px';
 			resultDiv.style.borderRadius = '5px';
 			resultDiv.innerHTML = `
-			        <p>期望值: ${average}</p>
-			        <p>10%達成率: ${p10d}</p>
-			        <p>50%中位數: ${median}</p>
-			        <p>90%達成率: ${p90d}</p>
+			        <p>${t('expected')}: ${average}</p>
+			        <p>${t('p10')}: ${p10d}</p>
+			        <p>${t('p50')}: ${median}</p>
+			        <p>${t('p90')}: ${p90d}</p>
 					${extraLine}
-			        <p>運行時間: ${elapsedTime} 毫秒</p>
+			        <p>${t('runtime')}: ${elapsedTime} ${t('ms')}</p>
 			    `;
 				
 			//	小保命中: ${percentage.toFixed(2)}%
@@ -455,20 +455,20 @@ async function simulateGacha() {
 			    data: {
 			        labels: labels, // x 軸標籤
 			        datasets: [{
-			            label: '累計百分比 (%)',
+			            label: t('chartLabel'),
 			            data: cumulativePercentages, // 數據
-			            backgroundColor: 'rgba(54, 162, 235, 0.2)', 
-			            borderColor: 'rgba(54, 162, 235, 1)', 
-			            borderWidth: 2, 
-			            fill: true, 
+			            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+			            borderColor: 'rgba(54, 162, 235, 1)',
+			            borderWidth: 2,
+			            fill: true,
 			            pointRadius: 0
 			        }]
 			    },
 			    options: {
 			        interaction: {
 			            mode: 'nearest',
-			            axis: 'x', 
-			            intersect: false 
+			            axis: 'x',
+			            intersect: false
 			        },
 			        plugins: {
 			            tooltip: {
@@ -483,25 +483,25 @@ async function simulateGacha() {
 			            x: {
 			                title: {
 			                    display: true,
-			                    text: '抽取次數' 
+			                    text: t('chartXAxis')
 			                }
 			            },
 			            y: {
 			                title: {
 			                    display: true,
-			                    text: '累計百分比 (%)' 
+			                    text: t('chartYAxis')
 			                },
-			                beginAtZero: true, 
-			                max: 100 
+			                beginAtZero: true,
+			                max: 100
 			            }
 			        },
 			        elements: {
 			            line: {
-			                tension: 0.4 
+			                tension: 0.4
 			            },
 			            point: {
-			                hoverRadius: 8, // 增大懸停時數據點的半徑
-			                hitRadius: 10 // 增大數據點可被懸停的區域
+			                hoverRadius: 8,
+			                hitRadius: 10
 			            }
 			        }
 			    }
@@ -600,23 +600,6 @@ window.onload = function() {
 	}
 	
 	
-	// TODO 翻譯功能未完成
-//	const container = document.querySelector('.container');
-//	const userLanguage = 'en';
-//	//const userLanguage = navigator.language || navigator.userLanguage;
-//	console.log(userLanguage) ;
-//	if (container) {
-//	    const htmlContent = container.innerHTML;
-//	    
-//	    if (userLanguage.startsWith('ja')) {
-//	        container.innerHTML = translateHtml(htmlContent, 'japanese');
-//	    } else if (userLanguage.startsWith('zh') || ['zh-CN', 'zh-TW', 'zh-HK', 'zh-MO', 'zh-SG'].includes(userLanguage)) {
-//	        // 中文語系維持繁中，無需翻譯
-//	        return;
-//	    } else {
-//	        container.innerHTML = translateHtml(htmlContent, 'english');
-//	    }
-//	}
 };
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -650,60 +633,3 @@ document.addEventListener('DOMContentLoaded', function () {
     draw4StarCheckbox.addEventListener('change', toggleForm4Stars);
 });
 
-function translateHtml(html, language) {
-    let translatedHtml = html;
-    let translationMapToUse = language === 'japanese' ? japaneseTranslationMap : translationMap;
-    for (const [chinese, translated] of Object.entries(translationMapToUse)) {
-        // 使用正則表達式進行全局替換，確保所有出現的中文都被替換
-        const regex = new RegExp(chinese, 'g');
-        translatedHtml = translatedHtml.replace(regex, translated);
-    }
-    return translatedHtml;
-}
-
-// 獲取 class="container" 的 innerHTML 並進行翻譯
-function translateContainer(language) {
-    const container = document.querySelector('.container');
-    if (container) {
-        container.innerHTML = translateHtml(container.innerHTML, language);
-    }
-}
-
-
-
-const translationMap = {
-    "米池計算機": "MHY Gacha Calculator",
-    "選擇池類型": "Select Pool Type",
-    "原": "Genshin",
-    "鐵": "HSR",
-    "絕": "ZZZ",
-    "目標五星數": "Target five-star number",
-	"卡池上一次抽出的5星是非UP角色/武器。":"The last 5-star item drawn from the pool was a non-UP character/weapon.",
-	"距離上一次抽出5星後已經抽了多少抽。":"How many draws have been made since the last time you drew 5 stars?",
-    "角色": "Character",
-    "武器": "Weapon",
-    "已墊抽數": "Number of draws",
-    "模擬次數": "Simulation Times",
-    "卡池已大保底": "The card pool has a guarantee",
-	"明光計數器": "Bright light counter",
-	"模擬結果": "Simulation Result",
-    "模擬": "Simulate",
-};
-
-
-const japaneseTranslationMap = {
-    "米池計算機": "ミガチャ計算機",
-    "選擇池類型": "ガチャの種類",
-    "原": "原神",
-    "鐵": "崩スタ",
-    "絕": "ZZZ",
-    "目標五星數": "目標の五星数:",
-    "角色": "キャラクター",
-    "武器": "武器",
-    "已墊抽數": "現在の抽数",
-    "模擬次數": "シミュレーション回数",
-    "卡池已大保底": "プールハードピティ",
-	"模擬結果": "シミュレーション結果",
-    "模擬": "シミュレート",
-	"明光計數器": "掴みし明光",
-};

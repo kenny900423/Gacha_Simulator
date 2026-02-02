@@ -14,16 +14,24 @@
 
 <meta charset="UTF-8">
 <title>米池計算器</title>
-    <link rel="stylesheet" href="css/style.css?v=20250514">
+    <link rel="stylesheet" href="css/style.css?v=20260202">
+    <script src="js/i18n.js?v=20260202"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 	<div class="container">
-        <h1>米池計算器</h1>
+		<div class="header-row">
+			<h1 data-i18n="pageTitle">米池計算器</h1>
+			<select id="languageSelector">
+				<option value="zh-TW">繁體中文</option>
+				<option value="en">English</option>
+				<option value="ja">日本語</option>
+			</select>
+		</div>
 
 		<div class="section">
-			<p>選擇池類型:</p>
+			<p data-i18n="selectPoolType">選擇池類型:</p>
 			<div class="button-group">
 				<label class="radio-button"> <input type="radio"
 					name="poolType" value="yuan" checked> <span><img src="image/gi_icon.webp" alt="原" /></span>
@@ -33,73 +41,75 @@
 					name="poolType" value="jue"> <span><img src="image/zzz_icon.png" alt="絕" /></span>
 				</label>
 			</div>
+			<!-- TODO: 卡池日期功能尚未完成
+			<div class="toolbar">
+				<button id="poolDate" data-i18n="poolDate">卡池日期</button>
+			</div>
+			-->
 		</div>
 
 		<!-- 輸入目標五星數 -->
         <div class="section">
-        	<label>目標五星數：</label>
-            <label for="targetFiveStars">角色</label>
-            <input type="number" id="targetFiveStars" name="targetFiveStars" min="0" value = 1>            
-            <label for="targetFiveStars_weapon">武器</label>
+        	<label data-i18n="targetFiveStars">目標五星數：</label>
+            <label for="targetFiveStars" data-i18n="character">角色</label>
+            <input type="number" id="targetFiveStars" name="targetFiveStars" min="0" value = 1>
+            <label for="targetFiveStars_weapon" data-i18n="weapon">武器</label>
             <input type="number" id="targetFiveStars_weapon" name="targetFiveStars_weapon" min="0" value = 1>
         </div>
 
         <!-- 輸入已墊抽數 -->
         <div class="section">
-        	<label>已墊抽數<a class="tooltip"
-				target="_blank">? <span class="tooltiptext">距離上一次抽出5星後已經抽了多少抽。</span>
+        	<label><span data-i18n="currentPulls">已墊抽數</span><a class="tooltip"
+				target="_blank">? <span class="tooltiptext" data-i18n="tooltipCurrentPulls">距離上一次抽出5星後已經抽了多少抽。</span>
 			</a>：</label>
-                    
-            <label for="currentPulls">角色</label>
+
+            <label for="currentPulls" data-i18n="character">角色</label>
             <input type="number" id="currentPulls" name="currentPulls" min="0" value = 0>
-            <label for="currentPulls_weapon">武器</label>
+            <label for="currentPulls_weapon" data-i18n="weapon">武器</label>
             <input type="number" id="currentPulls_weapon" name="currentPulls_weapon" min="0" value = 0>
         </div>
         
         <div class="section">
-            <label for="simTimes">模擬次數:</label>
+            <label for="simTimes" data-i18n="simTimes">模擬次數:</label>
             <input type="number" id="simTimes" name="simTimes" min="1" max="1000000000" value="1000000">
         </div>
 
 
         <div class="section">
-        	<label>卡池已大保底<a class="tooltip" target="_blank">? <span class="tooltiptext">卡池上一次抽出的5星是非UP角色/武器。</span></a>：</label>
-            <label class='hardPityLabel' ><input type="checkbox" id="hardPity" name="hardPity" > 角色
+        	<label><span data-i18n="hardPity">卡池已大保底</span><a class="tooltip" target="_blank">? <span class="tooltiptext" data-i18n="tooltipHardPity">卡池上一次抽出的5星是非UP角色/武器。</span></a>：</label>
+            <label class='hardPityLabel' ><input type="checkbox" id="hardPity" name="hardPity" > <span data-i18n="character">角色</span>
             </label>
-            <label class='hardPityLabel' ><input type="checkbox" id="hardPity_weapon" name="hardPity_weapon" > 武器</label> 
-            <label id="hardCountLabel" for="hardCount"> 
-            明光計數器
+            <label class='hardPityLabel' ><input type="checkbox" id="hardPity_weapon" name="hardPity_weapon" > <span data-i18n="weapon">武器</span></label>
+            <label id="hardCountLabel" for="hardCount">
+            <span data-i18n="brightLight">明光計數器</span>
             <a href="https://www.bilibili.com/video/BV13XBiYZErT" class="tooltip"
-				target="_blank">? <span class="tooltiptext">明光機制模型使用B站up"一棵平衡树"的推論計算。有做些微調整使結果更接近大數據。</span>
+				target="_blank">? <span class="tooltiptext" data-i18n="tooltipBrightLight">明光機制模型使用B站up"一棵平衡树"的推論計算。有做些微調整使結果更接近大數據。</span>
 			</a>
 			<input type="number" id="hardCount" name="hardCount" min="0" max="3" value = 1 >
-			</label> 
+			</label>
         </div>
         
         <div style='background-color: rgb(230, 247, 255);'>
         <div class="section">
         	<div>
         	<label for="draw4Star"><input type="checkbox" id="draw4Star" name="draw4Star" >
-        	墊池抽四星(角色)</label>
-        	<a class="tooltip" target="_blank">? <span class="tooltiptext">計算在抽出指定數量的PU五星角色前。抽到指定數量的PU四星角色的成功率。
-        	</span></a>
+        	<span data-i18n="draw4Star">墊池抽四星(角色)</span></label>
+        	<a class="tooltip" target="_blank">? <span class="tooltiptext" data-i18n="tooltipDraw4Star">計算在抽出指定數量的PU五星角色前。抽到指定數量的PU四星角色的成功率。</span></a>
         	</div>
 
         </div>
 
 		<div class='section form4stars'>
-			<a style="color: #666; font-size: 0.85rem; font-style: italic;">是否墊池沒有絕對對錯，只有能否接受風險。墊池抽四星有歐有非，抽卡前請詳閱公開說明書(並沒有)。</a>
+			<a style="color: #666; font-size: 0.85rem; font-style: italic;" data-i18n="draw4StarHint">是否墊池沒有絕對對錯，只有能否接受風險。墊池抽四星有歐有非，抽卡前請詳閱公開說明書(並沒有)。</a>
 			<br>
-			<label for="target4Stars">目標四星數：</label> <input type="number"
-				id="target4Stars" name="target4Stars" min="0" value=1> 
-				<div> 
-				<label
-				for="current4Pulls">距離上個四星已抽</label> <input type="number"
+			<label for="target4Stars" data-i18n="target4Stars">目標四星數：</label> <input type="number"
+				id="target4Stars" name="target4Stars" min="0" value=1>
+				<div>
+				<label for="current4Pulls" data-i18n="current4Pulls">距離上個四星已抽</label> <input type="number"
 				id="current4Pulls" name="current4Pulls" min="0" value=0> <input type="checkbox"
 				id="hardPity4" name="hardPity4"><label
-				class='hardPity4Label'>上個四星是PU角色(不論是否是目標角色)
+				class='hardPity4Label' data-i18n="hardPity4Label">上個四星是PU角色(不論是否是目標角色)</label>
 				</div>
-			</label>
 		</div>
 		</div>
 
@@ -107,13 +117,12 @@
 
 		<!-- 模擬按鈕 -->
         <div class="section">
-            <button id="simulateButton">模擬</button>
+            <button id="simulateButton" data-i18n="simulate">模擬</button>
         </div>
 
         <!-- 模擬結果 -->
         <div class="section">
-            <label for="result">模擬結果:</label>
-<!--             <textarea id="result" name="result" rows="5" cols="30" readonly></textarea> -->
+            <label for="result" data-i18n="result">模擬結果:</label>
 			<div id='result'></div>
         </div>
 
@@ -123,19 +132,20 @@
 		</div>
 	</div>
 
-	<script src="js/script.js?v=20250514"></script>
+	<script src="js/script.js?v=20260202"></script>
 
 	<div id="loadingOverlay" class="overlay" style="display: none;">
 		<div class="loading-content">
 			<img src="image/gi_load.gif" alt="計算中" style="width: 150px; height: 150px;">
-			<p>計算中...</p>
+			<p data-i18n="calculating">計算中...</p>
 		</div>
 	</div>
+
 </body>
 <footer style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 0.75rem; color: #666;">
-  <p>非營利開源專案，如發現BUG或有改進意見，歡迎至巴哈姆特論壇搜尋"米池計算器"向作者回報。</p>
+  <p data-i18n="footerText">非營利開源專案，如發現BUG或有改進意見，歡迎至巴哈姆特論壇搜尋"米池計算器"向作者回報。</p>
   <p>
-    <a href="https://github.com/gino8246/Gacha_Simulator" target="_blank">GitHub 專案</a>
+    <a href="https://github.com/gino8246/Gacha_Simulator" target="_blank" data-i18n="githubProject">GitHub 專案</a>
   </p>
 </footer>
 </html>
