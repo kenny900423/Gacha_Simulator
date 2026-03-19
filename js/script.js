@@ -411,7 +411,7 @@ async function simulateGacha() {
 					p10d=labels[cumulativePercentages.length];
 				if (p90d === 0 && cumulative >= 90)
 					p90d=labels[cumulativePercentages.length];
-				cumulativePercentages.push(cumulative.toFixed(2)); // 保留兩位小數
+                cumulativePercentages.push(cumulative.toFixed(5)); // 保留五位小數
 
 				return cumulative;
 			}, 0);
