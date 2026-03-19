@@ -3,19 +3,191 @@ function calculateRandomOutcome(probability) {
 	return randomValue < probability;
 }
 
+function simulatePoolOnce(poolType, targetFiveStars, targetFiveStars_weapon, currentPulls, currentPulls_weapon, target4Stars, current4Pulls, draw4Star, hardPity, hardPity_weapon, hardCount) {
+	let totalPull = 0;
+	let hartIn = 0;
+	let hartOut = 0;
+	let pull4success = 0;
+
+	const hardPity4Initial = document.getElementById('hardPity4').checked ? true : false;
+
+	// 角色部分
+	{
+		let pullsTimes = currentPulls + 1;
+		let hardPityFlag = hardPity;
+		let pulls4Times = current4Pulls;
+		let star4 = 0;
+		let hard4Pity = hardPity4Initial;
+
+		for (let fiveStars = 0; fiveStars < targetFiveStars;) {
+			totalPull += 1;
+			let random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
+			for (; !calculateRandomOutcome(random);) {
+				pullsTimes += 1;
+				totalPull += 1;
+				random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
+
+				if (draw4Star && star4 < target4Stars) {
+					pulls4Times += 1;
+					let random4;
+					if (poolType === 'jue') {
+						random4 = pulls4Times <= 9 ? 94 : 1000;
+					} else {
+						random4 = pulls4Times <= 8 ? 51 : (pulls4Times === 9 ? 562 : 1000);
+					}
+
+					if (calculateRandomOutcome(random4)) {
+						pulls4Times = 0;
+						if (hard4Pity) {
+							if (poolType === 'jue') {
+								if (calculateRandomOutcome(500)) star4 += 1;
+							} else {
+								if (calculateRandomOutcome(334)) star4 += 1;
+							}
+							hard4Pity = false;
+						} else {
+							if (calculateRandomOutcome(500)) {
+								if (poolType === 'jue') {
+									if (calculateRandomOutcome(500)) star4 += 1;
+								} else {
+									if (calculateRandomOutcome(334)) star4 += 1;
+								}
+							} else {
+								hard4Pity = true;
+							}
+						}
+
+						if (star4 >= target4Stars) {
+							pull4success += 1;
+						}
+					}
+				}
+			}
+
+			if (hardPityFlag) {
+				fiveStars += 1;
+				hardPityFlag = false;
+			} else {
+				if (poolType === 'yuan') {
+					if (hardCount == 3) {
+						fiveStars += 1;
+						hartIn += 1;
+						hardCount = 1;
+					} else if (hardCount == 2) {
+						if (calculateRandomOutcome(600)) {
+							fiveStars += 1;
+							hartIn += 1;
+							hardCount = 1;
+						} else {
+							hardPityFlag = true;
+							hartOut += 1;
+							hardCount += 1;
+						}
+					} else if (calculateRandomOutcome(500)) {
+						fiveStars += 1;
+						hartIn += 1;
+						if (hardCount > 0) hardCount -= 1;
+					} else {
+						hardPityFlag = true;
+						hartOut += 1;
+						hardCount += 1;
+					}
+				} else if (poolType === 'tie') {
+					if (calculateRandomOutcome(500)) {
+						fiveStars += 1;
+					} else if (calculateRandomOutcome(143)) {
+						fiveStars += 1;
+					} else {
+						hardPityFlag = true;
+					}
+				} else if (poolType === 'jue') {
+					if (calculateRandomOutcome(500)) {
+						fiveStars += 1;
+					} else {
+						hardPityFlag = true;
+					}
+				}
+			}
+
+			pullsTimes = 1;
+
+			if (poolType === 'jue') {
+				pulls4Times = 0;
+			}
+		}
+	}
+
+	// 武器部分
+	{
+		let pullsTimes = currentPulls_weapon + 1;
+		let hardPityFlag = hardPity_weapon;
+		for (let fiveStars = 0; fiveStars < targetFiveStars_weapon;) {
+			totalPull += 1;
+			let random;
+			if (poolType === 'jue') {
+				random = pullsTimes >= 80 ? 1000 : (pullsTimes < 65 ? 10 : (70 + (pullsTimes - 65) * 60));
+			} else {
+				random = pullsTimes < 62 ? 7 : (pullsTimes < 74 ? (pullsTimes - 62) * 70 + 7 : (pullsTimes - 73) * 3.5 + 777);
+			}
+			for (; !calculateRandomOutcome(random);) {
+				pullsTimes += 1;
+				totalPull += 1;
+				if (poolType === 'jue') {
+					random = pullsTimes >= 80 ? 1000 : (pullsTimes < 65 ? 10 : (70 + (pullsTimes - 65) * 60));
+				} else {
+					random = pullsTimes < 62 ? 7 : (pullsTimes < 74 ? (pullsTimes - 62) * 70 + 7 : (pullsTimes - 73) * 3.5 + 777);
+				}
+			}
+			if (hardPityFlag) {
+				fiveStars += 1;
+				hardPityFlag = false;
+			} else {
+				if (poolType === 'yuan') {
+					if (calculateRandomOutcome(250)) {
+						hardPityFlag = true;
+					} else {
+						if (calculateRandomOutcome(500)) {
+							fiveStars += 1;
+						} else {
+							hardPityFlag = true;
+						}
+					}
+				} else {
+					if (calculateRandomOutcome(250)) {
+						hardPityFlag = true;
+					} else {
+						fiveStars += 1;
+					}
+				}
+			}
+			pullsTimes = 1;
+		}
+	}
+
+	return { totalPull, hartIn, hartOut, pull4success };
+}
+
 document.getElementById("simulateButton").addEventListener("click", async function() {
+	const getIntValue = (id) => parseInt(document.getElementById(id)?.value) || 0;
+	const targetFiveStarsSum = getIntValue('targetFiveStars_yuan') + getIntValue('targetFiveStars_tie') + getIntValue('targetFiveStars_jue');
+	const targetFiveStarsWeaponSum = getIntValue('targetFiveStars_weapon_yuan') + getIntValue('targetFiveStars_weapon_tie') + getIntValue('targetFiveStars_weapon_jue');
+	const currentPullsSum = getIntValue('currentPulls_yuan') + getIntValue('currentPulls_tie') + getIntValue('currentPulls_jue');
+	const currentPullsWeaponSum = getIntValue('currentPulls_weapon_yuan') + getIntValue('currentPulls_weapon_tie') + getIntValue('currentPulls_weapon_jue');
+
 	gtag("event", "simulate", {
-	  poolType: document.querySelector('input[name="poolType"]:checked')?.value,
-	  targetFiveStars: parseInt(document.getElementById('targetFiveStars').value) || 0,
-	  targetFiveStars_weapon:parseInt(document.getElementById('targetFiveStars_weapon').value) || 0
+	  poolType: 'yuan',
+	  targetFiveStars: targetFiveStarsSum,
+	  targetFiveStars_weapon: targetFiveStarsWeaponSum,
+	  currentPulls: currentPullsSum,
+	  currentPulls_weapon: currentPullsWeaponSum
 	});
 	document.getElementById("loadingOverlay").style.display = "flex";
 
 	try {
-		// 以非同步方式執行 simulateGacha 並等待其完成
+		// 以非同步方式呼叫 simulateGacha 並等待其完成
 		await simulateGacha();
 	} finally {
-		// 計算完成後隱藏 overlay
+		// 執行完成後隱藏 loading overlay
 		document.getElementById("loadingOverlay").style.display = "none";
 	}
 
@@ -24,404 +196,109 @@ document.getElementById("simulateButton").addEventListener("click", async functi
 async function simulateGacha() {
 
 	return new Promise((resolve) => {
-		if (parseInt(document.getElementById('currentPulls').value) < 0)
-			document.getElementById('currentPulls').value = 0;
-		if (parseInt(document.getElementById('currentPulls_weapon').value) < 0)
-			document.getElementById('currentPulls_weapon').value = 0;
-		if (parseInt(document.getElementById('targetFiveStars').value) < 0)
-			document.getElementById('targetFiveStars').value = 0;
-		if (parseInt(document.getElementById('targetFiveStars_weapon').value) < 0)
-			document.getElementById('targetFiveStars_weapon').value = 0;
-		if (parseInt(document.getElementById('hardCount').value) < 0)
-			document.getElementById('hardCount').value = 0;
-		if (parseInt(document.getElementById('hardCount').value) > 3)
-			document.getElementById('hardCount').value = 3;
+		const checkField = (id, min, max) => {
+			const el = document.getElementById(id);
+			if (!el) return;
+			let v = parseInt(el.value) || 0;
+			if (v < min) v = min;
+			if (v > max) v = max;
+			el.value = v;
+		};
 
-		
+		checkField('currentPulls_yuan', 0, 999999999);
+		checkField('currentPulls_tie', 0, 999999999);
+		checkField('currentPulls_jue', 0, 999999999);
+		checkField('currentPulls_weapon_yuan', 0, 999999999);
+		checkField('currentPulls_weapon_tie', 0, 999999999);
+		checkField('currentPulls_weapon_jue', 0, 999999999);
+		checkField('targetFiveStars_yuan', 0, 999999999);
+		checkField('targetFiveStars_tie', 0, 999999999);
+		checkField('targetFiveStars_jue', 0, 999999999);
+		checkField('targetFiveStars_weapon_yuan', 0, 999999999);
+		checkField('targetFiveStars_weapon_tie', 0, 999999999);
+		checkField('targetFiveStars_weapon_jue', 0, 999999999);
+		checkField('target4Stars', 0, 999999999);
+		checkField('current4Pulls', 0, 999999999);
+		checkField('hardCount', 0, 3);
+
 		setTimeout(() => {
-			// 記錄開始時間
 			const startTime = new Date();
 
-			// 取得表單的數據
-			const poolType = document.querySelector('input[name="poolType"]:checked')?.value || '未選擇';
-			const currentPulls = parseInt(document.getElementById('currentPulls').value) || 0;
-			const currentPulls_weapon = parseInt(document.getElementById('currentPulls_weapon').value) || 0;
+			const currentPulls_yuan = parseInt(document.getElementById('currentPulls_yuan')?.value) || 0;
+			const currentPulls_tie = parseInt(document.getElementById('currentPulls_tie')?.value) || 0;
+			const currentPulls_jue = parseInt(document.getElementById('currentPulls_jue')?.value) || 0;
+			const currentPulls_weapon_yuan = parseInt(document.getElementById('currentPulls_weapon_yuan')?.value) || 0;
+			const currentPulls_weapon_tie = parseInt(document.getElementById('currentPulls_weapon_tie')?.value) || 0;
+			const currentPulls_weapon_jue = parseInt(document.getElementById('currentPulls_weapon_jue')?.value) || 0;
 
-			const targetFiveStars = parseInt(document.getElementById('targetFiveStars').value) || 0;
-			const targetFiveStars_weapon = parseInt(document.getElementById('targetFiveStars_weapon').value) || 0;
+			const targetFiveStars_yuan = parseInt(document.getElementById('targetFiveStars_yuan')?.value) || 0;
+			const targetFiveStars_tie = parseInt(document.getElementById('targetFiveStars_tie')?.value) || 0;
+			const targetFiveStars_jue = parseInt(document.getElementById('targetFiveStars_jue')?.value) || 0;
+			const targetFiveStars_weapon_yuan = parseInt(document.getElementById('targetFiveStars_weapon_yuan')?.value) || 0;
+			const targetFiveStars_weapon_tie = parseInt(document.getElementById('targetFiveStars_weapon_tie')?.value) || 0;
+			const targetFiveStars_weapon_jue = parseInt(document.getElementById('targetFiveStars_weapon_jue')?.value) || 0;
+
 			const simTimes = parseInt(document.getElementById('simTimes').value) || 1000000;
-			
 			const target4Stars = parseInt(document.getElementById('target4Stars').value) || 0;
 			const current4Pulls = parseInt(document.getElementById('current4Pulls').value) || 0;
-
-			//小保歪次數
-			let hartIn = 0;
-			let hartOut = 0;
-			
-			//成功墊抽
-			const draw4Star = document.getElementById('draw4Star').checked ? true : false;
-			let pull4success = 0 ;
+			const hardPity = document.getElementById('hardPity').checked;
+			const hardPityWeapon = document.getElementById('hardPity_weapon').checked;
+			const hardCount = parseInt(document.getElementById('hardCount').value) || 0;
+			const draw4Star = document.getElementById('draw4Star').checked;
 
 			let cluster = new StatisticsCluster();
-			switch (poolType) {
-				case "yuan":
-					for (let i = 0; i < simTimes; i++) {
-						let pullsTimes = currentPulls + 1;
-						let totalPull = 0;
-						let hardPity = document.getElementById('hardPity').checked ? true : false;
-						let hardCount = parseInt(document.getElementById('hardCount').value) || 0;
-						
-						let pulls4Times = current4Pulls;
-						let star4 = 0 ;
-						let hard4Pity = document.getElementById('hardPity4').checked ? true : false;
-						for (let fiveStars = 0; fiveStars < targetFiveStars;) {
-							totalPull = totalPull + 1;
-							let random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
-							for (; !calculateRandomOutcome(random);) {
-								//						console.log("c"+pullsTimes);
-								pullsTimes = pullsTimes + 1;
-								totalPull = totalPull + 1;
-								random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
-								
-								// 沒中五星的情況再計算四星
-								if (draw4Star && star4 <target4Stars) {
-									pulls4Times = pulls4Times + 1;
-									let random4 = pulls4Times <= 8 ? 51 
-										: (pulls4Times === 9  ? 562 : 1000);
-									if ( calculateRandomOutcome(random4) ){
-										pulls4Times=0;
-										if (hard4Pity){
-											if (calculateRandomOutcome(334)) {
-												star4 = star4 + 1 ;
-											}
-											hard4Pity = false ;
-										}
-										else {
-											if (calculateRandomOutcome(500)) {
-												if (calculateRandomOutcome(334)) {
-													star4 = star4 + 1 ;
-												}
-											}
-											else {
-												hard4Pity = true ;
-											}
-										}
-										
-										if (star4 >= target4Stars) {
-											pull4success = pull4success + 1;
-										}
-									}									
-								}
-							}
-							if (hardPity) {
-								fiveStars = fiveStars + 1;
-								hardPity = false;
-							} else {
-								if (hardCount == 3){
-									fiveStars = fiveStars + 1;
-									hartIn = hartIn + 1;
-									hardCount = 1 ;
-								}
-								else if (hardCount == 2) {
-									if (calculateRandomOutcome(600)) {
-										fiveStars = fiveStars + 1;
-										hartIn = hartIn + 1;
-										hardCount = 1;
-									}
-									else {
-										hardPity = true;
-										hartOut = hartOut + 1;
-										hardCount = hardCount + 1 ;
-									}
-								}
-								else if (calculateRandomOutcome(500)) {
-									fiveStars = fiveStars + 1;
-									hartIn = hartIn + 1;
-									if (hardCount>0)
-										hardCount = hardCount - 1 ;
-								} else {
-									hardPity = true;
-									hartOut = hartOut + 1;
-									hardCount = hardCount + 1 ;
-								}
-							}
-							pullsTimes = 1;
-						}
+			let totalHartIn = 0;
+			let totalHartOut = 0;
+			let totalPull4success = 0;
 
-						pullsTimes = currentPulls_weapon + 1;
-						hardPity = document.getElementById('hardPity_weapon').checked ? true : false;
-						for (let fiveStars = 0; fiveStars < targetFiveStars_weapon;) {
-							totalPull = totalPull + 1;
-							let random = pullsTimes < 62 ? 7 : (pullsTimes < 74 ? (pullsTimes - 62) * 70 + 7 : (pullsTimes - 73) * 3.5 + 777);
-							for (; !calculateRandomOutcome(random);) {
-								//						console.log("w"+pullsTimes);
-								pullsTimes = pullsTimes + 1;
-								totalPull = totalPull + 1
-								random = pullsTimes < 62 ? 7 : (pullsTimes < 74 ? (pullsTimes - 62) * 70 + 7 : (pullsTimes - 73) * 3.5 + 777)
-							}
-							if (hardPity) {
-								fiveStars = fiveStars + 1;
-								hardPity = false;
-							} else {
-								if (calculateRandomOutcome(250)) {
-									hardPity = true;
-								} else {
-									if (calculateRandomOutcome(500))
-										fiveStars = fiveStars + 1;
-									else
-										hardPity = true;
-								}
-							}
-							pullsTimes = 1;
-						}
-						cluster.add(totalPull);
-					}
-					break;
-				case "tie":
-					for (let i = 0; i < simTimes; i++) {
-						let pullsTimes = currentPulls + 1;
-						let totalPull = 0;
-						let hardPity = document.getElementById('hardPity').checked ? true : false;
-						
-						let pulls4Times = current4Pulls;
-						let star4 = 0 ;
-						let hard4Pity = document.getElementById('hardPity4').checked ? true : false;
-						for (let fiveStars = 0; fiveStars < targetFiveStars;) {
-							totalPull = totalPull + 1;
-							let random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
-							for (; !calculateRandomOutcome(random);) {
-								pullsTimes = pullsTimes + 1;
-								totalPull = totalPull + 1;
-								random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
-								
-								// 沒中五星的情況再計算四星
-								if (draw4Star && star4 < target4Stars) {
-									pulls4Times = pulls4Times + 1;
-									let random4 = pulls4Times <= 8 ? 51
-										: (pulls4Times === 9 ? 562 : 1000);
-									if (calculateRandomOutcome(random4)) {
-										pulls4Times = 0;
-										if (hard4Pity) {
-											if (calculateRandomOutcome(334)) {
-												star4 = star4 + 1;
-											}
-											hard4Pity = false;
-										}
-										else {
-											if (calculateRandomOutcome(500)) {
-												if (calculateRandomOutcome(334)) {
-													star4 = star4 + 1;
-												}
-											}
-											else {
-												hard4Pity = true;
-											}
-										}
+			for (let i = 0; i < simTimes; i++) {
+				const poolYuan = simulatePoolOnce('yuan', targetFiveStars_yuan, targetFiveStars_weapon_yuan, currentPulls_yuan, currentPulls_weapon_yuan, target4Stars, current4Pulls, draw4Star, hardPity, hardPityWeapon, hardCount);
+				const poolTie = simulatePoolOnce('tie', targetFiveStars_tie, targetFiveStars_weapon_tie, currentPulls_tie, currentPulls_weapon_tie, target4Stars, current4Pulls, draw4Star, hardPity, hardPityWeapon, 0);
+				const poolJue = simulatePoolOnce('jue', targetFiveStars_jue, targetFiveStars_weapon_jue, currentPulls_jue, currentPulls_weapon_jue, target4Stars, current4Pulls, draw4Star, hardPity, hardPityWeapon, 0);
 
-										if (star4 >= target4Stars) {
-											pull4success = pull4success + 1;
-										}
-									}
-								}
-							}
-							if (hardPity) {
-								fiveStars = fiveStars + 1;
-								hardPity = false;
-							} else {
-								if (calculateRandomOutcome(500)) {
-									fiveStars = fiveStars + 1;
-								} else {
-									if (calculateRandomOutcome(143))
-										fiveStars = fiveStars + 1;
-									else
-										hardPity = true;
-								}
-							}
+				const combinedPull = poolYuan.totalPull + poolTie.totalPull + poolJue.totalPull;
+				cluster.add(combinedPull);
 
-							pullsTimes = 1;
-						}
-
-						pullsTimes = currentPulls_weapon + 1;
-						hardPity = document.getElementById('hardPity_weapon').checked ? true : false;
-						for (let fiveStars = 0; fiveStars < targetFiveStars_weapon;) {
-							totalPull = totalPull + 1;
-							let random = pullsTimes < 62 ? 7 : (pullsTimes < 74 ? (pullsTimes - 62) * 70 + 7 : (pullsTimes - 73) * 3.5 + 777);
-							for (; !calculateRandomOutcome(random);) {
-								pullsTimes = pullsTimes + 1;
-								totalPull = totalPull + 1
-								random = pullsTimes < 62 ? 7 : (pullsTimes < 74 ? (pullsTimes - 62) * 70 + 7 : (pullsTimes - 73) * 3.5 + 777)
-							}
-							if (hardPity) {
-								fiveStars = fiveStars + 1;
-								hardPity = false;
-							} else {
-								if (calculateRandomOutcome(250)) {
-									hardPity = true;
-								} else {
-									fiveStars = fiveStars + 1;
-								}
-							}
-							pullsTimes = 1;
-						}
-
-						cluster.add(totalPull);
-					}
-					break;
-				case "jue":
-					for (let i = 0; i < simTimes; i++) {
-						let pullsTimes = currentPulls + 1;
-						let totalPull = 0;
-						let hardPity = document.getElementById('hardPity').checked ? true : false;
-						
-						let pulls4Times = current4Pulls;
-						let star4 = 0 ;
-						let hard4Pity = document.getElementById('hardPity4').checked ? true : false;
-						for (let fiveStars = 0; fiveStars < targetFiveStars;) {
-							totalPull = totalPull + 1;
-							let random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
-							for (; !calculateRandomOutcome(random);) {
-								pullsTimes = pullsTimes + 1;
-								totalPull = totalPull + 1;
-								random = pullsTimes < 74 ? 6 : (pullsTimes - 73) * 60 + 6;
-								
-								if (draw4Star && star4 < target4Stars) {
-									pulls4Times = pulls4Times + 1;
-									let random4 = pulls4Times <= 9 ? 94	: 1000;
-									if (calculateRandomOutcome(random4)) {
-										pulls4Times = 0;
-										if (hard4Pity) {
-											if (calculateRandomOutcome(500)) {
-												star4 = star4 + 1;
-											}
-											hard4Pity = false;
-										}
-										else {
-											if (calculateRandomOutcome(500)) {
-												if (calculateRandomOutcome(500)) {
-													star4 = star4 + 1;
-												}
-											}
-											else {
-												hard4Pity = true;
-											}
-										}
-
-										if (star4 >= target4Stars) {
-											pull4success = pull4success + 1;
-										}
-									}
-								}
-							}
-							if (hardPity) {
-								fiveStars = fiveStars + 1;
-								hardPity = false;
-							} else {
-								if (calculateRandomOutcome(500)) {
-									fiveStars = fiveStars + 1;
-								} else {
-									hardPity = true;
-								}
-							}
-
-							pullsTimes = 1;
-							
-							// zzz較為特別，S級會吞A級的保底
-							pulls4Times = 0 ;
-
-						}
-
-						pullsTimes = currentPulls_weapon + 1;
-						hardPity = document.getElementById('hardPity_weapon').checked ? true : false;
-						for (let fiveStars = 0; fiveStars < targetFiveStars_weapon;) {
-							totalPull = totalPull + 1;
-							let random = pullsTimes >= 80 ? 1000: (pullsTimes < 65 ? 10 : (70+(pullsTimes - 65) * 60));
-							for (; !calculateRandomOutcome(random);) {
-								pullsTimes = pullsTimes + 1;
-								totalPull = totalPull + 1
-								random = pullsTimes >= 80 ? 1000: (pullsTimes < 65 ? 10 : (70+(pullsTimes - 65) * 60));
-							}
-							if (hardPity) {
-								fiveStars = fiveStars + 1;
-								hardPity = false;
-							} else {
-								if (calculateRandomOutcome(250)) {
-									hardPity = true;
-								} else {
-									fiveStars = fiveStars + 1;
-								}
-							}
-							pullsTimes = 1;
-						}
-
-						cluster.add(totalPull);
-					}
-					break;
-				default:
-					break;
+				totalHartIn += poolYuan.hartIn + poolTie.hartIn + poolJue.hartIn;
+				totalHartOut += poolYuan.hartOut + poolTie.hartOut + poolJue.hartOut;
+				totalPull4success += poolYuan.pull4success + poolTie.pull4success + poolJue.pull4success;
 			}
+
 			const average = cluster.getAverage();
 			const min = cluster.getMin();
 			const max = cluster.getMax();
 			const median = cluster.getMedian();
 
-			// 記錄結束時間
 			const endTime = new Date();
-
-			// 計算運行時間（以毫秒為單位）
 			const elapsedTime = endTime - startTime;
 
-			// 計算百分比
-			let total = hartIn + hartOut;
+			let total = totalHartIn + totalHartOut;
 			let percentage = 0;
+			if (total > 0) percentage = (totalHartIn / total) * 100;
 
-			if (total > 0) {
-				percentage = (hartIn / total) * 100;
-			}
-
-
-
-
-
-			// 收集數據用於圖表
 			const pullData = cluster.getData();
 			const pullCounts = {};
-
-			// 統計每個抽取次數出現的頻率
 			pullData.forEach(pull => {
-				if (pullCounts[pull]) {
-					pullCounts[pull]++;
-				} else {
-					pullCounts[pull] = 1;
-				}
+				pullCounts[pull] = (pullCounts[pull] || 0) + 1;
 			});
 
-			const totalPulls = pullData.length; // 總抽取次數
-
-			// 將統計結果轉換為百分比並計算累計百分比
+			const totalPulls = pullData.length;
 			const labels = Object.keys(pullCounts);
 			const percentages = Object.values(pullCounts).map(count => (count / totalPulls) * 100);
 			const cumulativePercentages = [];
-
-			let p10d = 0;
-			let p90d = 0;
-			// 計算累計百分比
-			percentages.reduce((acc, curr) => {
-				const cumulative = acc + curr;				
-				if (p10d === 0 && cumulative >= 10)
-					p10d=labels[cumulativePercentages.length];
-				if (p90d === 0 && cumulative >= 90)
-					p90d=labels[cumulativePercentages.length];
-                cumulativePercentages.push(cumulative.toFixed(5)); // 保留五位小數
-
+			let p10d = 0, p90d = 0;
+			percentages.reduce((acc, curr, idx) => {
+				const cumulative = acc + curr;
+				if (p10d === 0 && cumulative >= 10) p10d = labels[idx];
+				if (p90d === 0 && cumulative >= 90) p90d = labels[idx];
+				cumulativePercentages.push(cumulative.toFixed(5));
 				return cumulative;
 			}, 0);
-			
-			
-			const isHardPityEnabled = document.getElementById('draw4Star').checked;
+
 			let extraLine = '';
-			if (isHardPityEnabled) {
-			    const successRate = ((pull4success / simTimes) * 100).toFixed(2);
-			    extraLine = `<p>${t('successRate4')}: ${successRate}%</p>`;
+			if (draw4Star) {
+				const successRate = ((totalPull4success / simTimes) * 100).toFixed(2);
+				extraLine = `<p>${t('successRate4')}: ${successRate}%</p>`;
 			}
 
 			const resultDiv = document.getElementById('result');
@@ -429,89 +306,42 @@ async function simulateGacha() {
 			resultDiv.style.padding = '10px';
 			resultDiv.style.borderRadius = '5px';
 			resultDiv.innerHTML = `
-			        <p>${t('expected')}: ${average}</p>
-			        <p>${t('p10')}: ${p10d}</p>
-			        <p>${t('p50')}: ${median}</p>
-			        <p>${t('p90')}: ${p90d}</p>
-					${extraLine}
-			        <p>${t('runtime')}: ${elapsedTime} ${t('ms')}</p>
-			    `;
-				
-			//	小保命中: ${percentage.toFixed(2)}%
+				<p>${t('expected')}: ${average}</p>
+				<p>${t('p10')}: ${p10d}</p>
+				<p>${t('p50')}: ${median}</p>
+				<p>${t('p90')}: ${p90d}</p>
+				${extraLine}
+				<p>${t('runtime')}: ${elapsedTime} ${t('ms')}</p>
+			`;
 
-			// 顯示結果到textarea
-//			document.getElementById('result').value = resultText.trim();
-
-			// 創建圖表
 			const ctx = document.getElementById('resultChart').getContext('2d');
-
-			if (window.resultChart instanceof Chart) {
-				window.resultChart.destroy();
-			}
-
-			// 新建圖表
+			if (window.resultChart instanceof Chart) window.resultChart.destroy();
 			window.resultChart = new Chart(ctx, {
-			    type: 'line', // 折線圖類型
-			    data: {
-			        labels: labels, // x 軸標籤
-			        datasets: [{
-			            label: t('chartLabel'),
-			            data: cumulativePercentages, // 數據
-			            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-			            borderColor: 'rgba(54, 162, 235, 1)',
-			            borderWidth: 2,
-			            fill: true,
-			            pointRadius: 0
-			        }]
-			    },
-			    options: {
-			        interaction: {
-			            mode: 'nearest',
-			            axis: 'x',
-			            intersect: false
-			        },
-			        plugins: {
-			            tooltip: {
-			                callbacks: {
-			                    label: function(context) {
-			                        return `${context.dataset.label}: ${context.raw}%`;
-			                    }
-			                }
-			            }
-			        },
-			        scales: {
-			            x: {
-			                title: {
-			                    display: true,
-			                    text: t('chartXAxis')
-			                }
-			            },
-			            y: {
-			                title: {
-			                    display: true,
-			                    text: t('chartYAxis')
-			                },
-			                beginAtZero: true,
-			                max: 100
-			            }
-			        },
-			        elements: {
-			            line: {
-			                tension: 0.4
-			            },
-			            point: {
-			                hoverRadius: 8,
-			                hitRadius: 10
-			            }
-			        }
-			    }
+				type: 'line',
+				data: {
+					labels: labels,
+					datasets: [{
+						label: t('chartLabel'),
+						data: cumulativePercentages,
+						backgroundColor: 'rgba(54, 162, 235, 0.2)',
+						borderColor: 'rgba(54, 162, 235, 1)',
+						borderWidth: 2,
+						fill: true,
+						pointRadius: 0
+					}]
+				},
+				options: {
+					interaction: { mode: 'nearest', axis: 'x', intersect: false },
+					plugins: { tooltip: { callbacks: { label: function(context){ return `${context.dataset.label}: ${context.raw}%`; } } } },
+					scales: { x: { title: { display: true, text: t('chartXAxis') } }, y: { title: { display: true, text: t('chartYAxis') }, beginAtZero: true, max: 100 } },
+					elements: { line: { tension: 0.4 }, point: { hoverRadius: 8, hitRadius: 10 } }
+				}
 			});
 
 			resolve();
-		}, 50); 
+		}, 50);
 	});
 }
-
 class StatisticsCluster {
 	constructor() {
 		this.data = [];
