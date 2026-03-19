@@ -11,7 +11,7 @@
 - [其他備註](#其他備註)
 
 ## 頁面網址
-<https://gino8246.github.io/Gacha_Simulator/>
+<https://kenny900423.github.io/Gacha_Simulator/>
 
 ## 功能
 - 依照官方機制模擬三款遊戲的角色與武器池
